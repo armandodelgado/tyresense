@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TyreSense Demo Completa</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; background: #0f172a; color: white; overflow: hidden; display: flex; flex-direction: column; }
+  .header { padding: 15px 20px; background: #1e293b; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; flex-shrink: 0; }
+  .main-content { display: flex; flex: 1; overflow: hidden; }
+  .split-container { display: flex; flex: 1; }
+  .frame-wrapper { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #334155; }
+  .frame-wrapper.mobile { flex: 0 0 400px; border-right: none; background: #e2e8f0; }
+  .frame-title { padding: 10px; background: #334155; font-size: 14px; font-weight: bold; text-align: center; color: #e2e8f0; }
+  iframe { border: none; width: 100%; height: 100%; }
+  
+  /* Agent Terminal */
+  .terminal-wrapper { height: 250px; background: #050505; border-top: 2px solid #3b82f6; display: flex; flex-direction: column; flex-shrink: 0; }
+  .terminal-header { background: #111; padding: 5px 15px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #3b82f6; display: flex; align-items: center; gap: 10px; }
+  .terminal-body { padding: 15px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #a3a3a3; overflow-y: auto; flex: 1; line-height: 1.5; }
+  .log-line { margin-bottom: 4px; }
+  .log-time { color: #555; margin-right: 10px; }
+  .log-agent { color: #c084fc; font-weight: bold; }
+  .log-vision { color: #34d399; }
+  .log-health { color: #f472b6; }
+  .log-supply { color: #fbbf24; }
+  .log-error { color: #ef4444; }
+  .log-success { color: #10b981; font-weight: bold; }
+  
+  .blinking-cursor { display: inline-block; width: 8px; height: 15px; background: #3b82f6; animation: blink 1s step-end infinite; vertical-align: middle; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div style="font-size: 18px; font-weight: bold; display: flex; align-items: center; gap: 10px;">
+      TyreSense AI — Ecosistema Conectado
+      <span style="font-size: 10px; background: #10b981; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">Agentes en Vivo</span>
+    </div>
+    <div style="font-size: 14px; color: #94a3b8;">Panel de Gerente + App de Campo + Backend Python</div>
+  </div>
+  
+  <div class="main-content">
+    <div class="split-container">
+      <!-- Dashboard Side -->
+      <div class="frame-wrapper">
+        <div class="frame-title">Vista del Gerente (Dashboard)</div>
+        <iframe src="dashboard.html" id="dashboard-frame"></iframe>
+      </div>
+      <!-- Mobile App Side -->
+      <div class="frame-wrapper mobile">
+        <div class="frame-title" style="background:#0f172a;">Vista del Chofer (App Móvil)</div>
+        <iframe src="mobile_app.html" id="mobile-frame"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real-time Agent Terminal -->
+  <div class="terminal-wrapper">
+    <div class="terminal-header">
+      <div style="width: 10px; height: 10px; background: #ef4444; border-radius: 50%;"></div>
+      <div style="width: 10px; height: 10px; background: #fbbf24; border-radius: 50%;"></div>
+      <div style="width: 10px; height: 10px; background: #10b981; border-radius: 50%;"></div>
+      <span style="margin-left: 10px;">demo_orchestrator.py — Terminal de Agentes</span>
+    </div>
+    <div class="terminal-body" id="terminal">
+      <div class="log-line"><span class="log-time">[00:00:00]</span> <span style="color:#fff;">Iniciando TyreSense Orchestrator...</span></div>
+      <div class="log-line"><span class="log-time">[00:00:00]</span> <span style="color:#10b981;">[Servidor]</span> Escuchando en http://0.0.0.0:8000</div>
+      <div class="log-line"><span class="log-time">[00:00:00]</span> <span style="color:#fff;">Cargando agentes: VisionAgent, TruckHealthAgent, SupplyChainAgent... OK</span></div>
+      <div id="cursor-line"><span class="blinking-cursor"></span></div>
+    </div>
+  </div>
+
+  <script>
+    const terminal = document.getElementById('terminal');
+    const cursor = document.getElementById('cursor-line');
+
+    function getTime() {
+      const now = new Date();
+      return `[${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}]`;
+    }
+
+    function addLog(message, type = '') {
+      const div = document.createElement('div');
+      div.className = 'log-line';
+      let content = `<span class="log-time">${getTime()}</span> `;
+      
+      if (type === 'orchestrator') content += `<span class="log-agent">[Orchestrator]</span> ${message}`;
+      else if (type === 'vision') content += `<span class="log-vision">[Vision AI]</span> ${message}`;
+      else if (type === 'health') content += `<span class="log-health">[Truck Health]</span> ${message}`;
+      else if (type === 'supply') content += `<span class="log-supply">[Supply Chain]</span> ${message}`;
+      else if (type === 'error') content += `<span class="log-error">[Error]</span> ${message}`;
+      else if (type === 'success') content += `<span class="log-success">►</span> <span style="color:white;">${message}</span>`;
+      else content += `<span style="color:#fff;">${message}</span>`;
+      
+      div.innerHTML = content;
+      terminal.insertBefore(div, cursor);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // Listen for messages from the iframes
+    window.addEventListener('message', function(event) {
+      const data = event.data;
+      if (data && data.type === 'agent_log') {
+        addLog(data.message, data.agent);
+      }
+      if (data && data.type === 'trigger_dashboard_update') {
+        // Tell dashboard to refresh claims
+        const dashFrame = document.getElementById('dashboard-frame');
+        if(dashFrame && dashFrame.contentWindow) {
+          dashFrame.contentWindow.postMessage({type: 'refresh_claims', claim: data.claim}, '*');
+        }
+      }
+    });
+  </script>
+</body>
+</html>

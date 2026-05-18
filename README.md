@@ -15,8 +15,7 @@ tyresense/
 │   ├── home.php           # Pantalla inicio — mapa de llantas
 │   ├── scan.php           # Pantalla de captura de foto
 │   ├── result.php         # Resultado del análisis IA
-│   ├── history.php        # Historial de inspecciones
-│   └── supply.php         # KPIs supply chain (nuevo)
+│   └── history.php        # Historial de inspecciones
 ├── css/
 │   └── app.css            # Sistema de diseño completo
 ├── js/
@@ -39,13 +38,12 @@ Abre http://localhost/tyresense/
 
 ## Navegación
 
-| URL                        | Pantalla              |
-|----------------------------|-----------------------|
-| `?screen=home`             | Inicio (default)      |
-| `?screen=scan`             | Escanear llanta       |
-| `?screen=result`           | Resultado IA          |
-| `?screen=history`          | Historial             |
-| `?screen=supply`           | Supply chain KPIs     |
+| URL                        | Pantalla         |
+|----------------------------|------------------|
+| `?screen=home`             | Inicio (default) |
+| `?screen=scan`             | Escanear llanta  |
+| `?screen=result`           | Resultado IA     |
+| `?screen=history`          | Historial        |
 
 ## Personalizar datos mock
 

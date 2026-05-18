@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>TyreSense AI — App Chofer</title>
+<style>
+  /* Simplified CSS for the static demo */
+  .stage { max-width: 400px; margin: 20px auto; background: #fff; border-radius: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; border: 8px solid #333; height: 800px; position: relative; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;}
+  .screen { padding: 20px; height: 100%; overflow-y: auto; background: #f8f9fa; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .topbar-title { font-weight: 700; font-size: 18px; color: #111; }
+  .topbar-sub { font-size: 12px; color: #666; }
+  .avatar { width: 40px; height: 40px; border-radius: 20px; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+  .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px; }
+  .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+  .badge-info { background: #e0f2fe; color: #0284c7; }
+  .axle-label { text-align: center; font-size: 11px; color: #999; margin: 15px 0 10px; text-transform: uppercase; letter-spacing: 1px; }
+  .tire-grid { display: grid; gap: 10px; margin-bottom: 15px; }
+  .tire-grid-2 { grid-template-columns: 1fr 1fr; }
+  .tire-grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .tire-slot { padding: 10px; border-radius: 8px; text-align: center; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+  .tire-ok { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
+  .tire-warning { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+  .tire-critical { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; cursor: pointer; border: none; width: 100%; box-sizing: border-box; }
+  .btn-primary { background: #2563eb; color: white; margin-bottom: 10px; }
+  .btn-secondary { background: #e5e7eb; color: #374151; }
+  svg { width: 24px; height: 24px; }
+</style>
+</head>
+<body style="background: #e2e8f0; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0;">
+
+<div class="stage">
+  <div class="screen" id="home-screen">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">Buenos días, Carlos</div>
+        <div class="topbar-sub">Vie 16 may &middot; Turno matutino</div>
+      </div>
+      <div class="avatar">CR</div>
+    </div>
+
+    <div class="card">
+      <div class="topbar" style="margin-bottom:8px">
+        <div>
+          <div class="topbar-title">Unidad #9901</div>
+          <div class="topbar-sub">Kenworth T680 · Eje triple</div>
+        </div>
+        <span class="badge badge-info">Ruta activa</span>
+      </div>
+      <p class="topbar-sub" style="margin-bottom:6px">Toca una posición para inspeccionar</p>
+
+      <div class="axle-label">— Eje delantero —</div>
+      <div class="tire-grid tire-grid-2">
+        <div class="tire-slot tire-ok" onclick="showScan('D-I')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="9 12 11 14 15 10"/></svg><span>D-I · 82%</span></div>
+        <div class="tire-slot tire-ok" onclick="showScan('D-D')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="9 12 11 14 15 10"/></svg><span>D-D · 78%</span></div>
+      </div>
+
+      <div class="axle-label">— Eje tractivo —</div>
+      <div class="tire-grid tire-grid-4">
+        <div class="tire-slot tire-ok" onclick="showScan('T1I')"><span>T1I</span></div>
+        <div class="tire-slot tire-warning" onclick="showScan('T1Ii')"><span>T1Ii</span></div>
+        <div class="tire-slot tire-warning" onclick="showScan('T1Di')"><span>T1Di</span></div>
+        <div class="tire-slot tire-ok" onclick="showScan('T1D')"><span>T1D</span></div>
+      </div>
+
+      <div class="axle-label">— Eje trasero —</div>
+      <div class="tire-grid tire-grid-4">
+        <div class="tire-slot tire-ok" onclick="showScan('T2I')"><span>T2I</span></div>
+        <div class="tire-slot tire-critical" onclick="showScan('T2Ii')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg><span>T2Ii</span></div>
+        <div class="tire-slot tire-ok" onclick="showScan('T2Di')"><span>T2Di</span></div>
+        <div class="tire-slot tire-ok" onclick="showScan('T2D')"><span>T2D</span></div>
+      </div>
+    </div>
+
+    <div style="background:#fef2f2; border:1px solid #fecaca; color:#991b1b; padding:12px; border-radius:8px; margin-bottom:15px; font-size:13px; display:flex; gap:10px; align-items:center;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="min-width:24px"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
+      <span>Llanta <strong>T2Ii</strong> requiere revisión inmediata — desgaste crítico detectado.</span>
+    </div>
+
+    <button class="btn btn-primary" onclick="showScan('General')">Iniciar inspección pre-trip</button>
+  </div>
+
+  <div class="screen" id="scan-screen" style="display:none;">
+    <div class="topbar">
+      <button onclick="goHome()" style="background:none;border:none;font-size:20px;cursor:pointer;">←</button>
+      <div class="topbar-title">Inspección: <span id="scan-pos">T2Ii</span></div>
+      <div style="width:20px"></div>
+    </div>
+    
+    <div class="card" style="text-align:center; padding:40px 20px;">
+      <input type="file" id="mobile-camera" accept="image/*" capture="environment" style="display:none;" onchange="processMobileImage(event)">
+      <button class="btn btn-primary" onclick="document.getElementById('mobile-camera').click()" style="margin-bottom:20px; padding:20px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:32px; height:32px; margin-right:10px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Tomar Foto de Llanta
+      </button>
+      <p style="color:#666; font-size:14px;">Asegúrate de que la banda de rodamiento y los costados sean visibles.</p>
+      
+      <div id="mobile-loading" style="display:none; margin-top:30px;">
+         <p>Analizando con IA...</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="result-screen" style="display:none;">
+    <div class="topbar">
+      <button onclick="goHome()" style="background:none;border:none;font-size:20px;cursor:pointer;">←</button>
+      <div class="topbar-title">Resultado IA</div>
+      <div style="width:20px"></div>
+    </div>
+    
+    <div class="card" id="result-content">
+      <!-- Injected by JS -->
+    </div>
+    <button class="btn btn-primary" onclick="goHome()">Terminar Inspección</button>
+  </div>
+</div>
+
+<script>
+  function goHome() {
+    document.getElementById('home-screen').style.display = 'block';
+    document.getElementById('scan-screen').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'none';
+  }
+  function showScan(pos) {
+    document.getElementById('scan-pos').innerText = pos;
+    document.getElementById('home-screen').style.display = 'none';
+    document.getElementById('scan-screen').style.display = 'block';
+  }
+  async function processMobileImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    document.getElementById('mobile-loading').style.display = 'block';
+    
+    // Simulate terminal logs
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({type: 'agent_log', agent: 'orchestrator', message: 'Recibiendo imagen de Unidad #9901 desde App Móvil...'}, '*');
+      window.parent.postMessage({type: 'agent_log', agent: 'vision', message: 'Iniciando inferencia YOLOv8 en imagen capturada...'}, '*');
+    }
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('truck_id', '9901');
+      
+      const res = await fetch('http://localhost:8000/api/upload_and_inspect', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('API Error');
+      const data = await res.json();
+      
+      const v = data.vision;
+      const t = data.truck_health;
+      
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({type: 'agent_log', agent: 'vision', message: `Resultado: ${v.status.toUpperCase()} (${v.class_name}, Confianza: ${v.confidence}%)`}, '*');
+        window.parent.postMessage({type: 'agent_log', agent: 'health', message: 'Evaluando reglas de negocio e impacto en el vehículo...'}, '*');
+        window.parent.postMessage({type: 'agent_log', agent: 'health', message: `Veredicto de Viaje: ${t.verdict}. Razón: ${t.reasons[0] || 'Apto'}`}, '*');
+        window.parent.postMessage({type: 'agent_log', agent: 'supply', message: 'Revisando garantías e historial de proveedor (Hankook)...'}, '*');
+      }
+      
+      let html = `
+        <div style="text-align:center; padding:20px 0; border-bottom:1px solid #eee; margin-bottom:15px;">
+          <h2 style="margin:0; color:${v.severity === 'critical' ? '#991b1b' : '#166534'}">${v.status.toUpperCase()}</h2>
+          <p style="margin:5px 0 0; color:#666;">Confianza IA: ${v.confidence}%</p>
+        </div>
+        <div style="margin-bottom:15px;">
+          <strong>Veredicto de Flota:</strong> ${t.verdict}<br>
+          <span style="font-size:13px; color:#666;">${t.reasons[0] || 'Todo en orden'}</span>
+        </div>
+      `;
+      
+      if (data.supply_chain.claim_action.status === 'claim_generated') {
+        const claim = data.supply_chain.claim_action.claim;
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({type: 'agent_log', agent: 'supply', message: `Generando RECLAMO AUTOMÁTICO IES #${claim.id} a proveedor ${claim.supplier}`}, '*');
+          window.parent.postMessage({type: 'agent_log', agent: 'success', message: 'Pipeline completado exitosamente.'}, '*');
+          // Notify dashboard to refresh
+          window.parent.postMessage({type: 'trigger_dashboard_update', claim: claim}, '*');
+        }
+        
+        html += `
+          <div style="background:#fef2f2; color:#991b1b; padding:10px; border-radius:8px; font-size:13px; font-weight:bold;">
+            ¡Reclamo IES generado automáticamente a ${claim.supplier}!
+          </div>
+        `;
+      } else {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({type: 'agent_log', agent: 'supply', message: 'No se requiere acción de reclamo para este estado.'}, '*');
+          window.parent.postMessage({type: 'agent_log', agent: 'success', message: 'Pipeline completado exitosamente.'}, '*');
+        }
+      }
+      
+      document.getElementById('result-content').innerHTML = html;
+      document.getElementById('scan-screen').style.display = 'none';
+      document.getElementById('result-screen').style.display = 'block';
+      
+    } catch(err) {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({type: 'agent_log', agent: 'error', message: 'Fallo de conexión con Python Orchestrator en puerto 8000.'}, '*');
+      }
+      alert("Error al contactar la IA. ¿Está corriendo en el puerto 8000?");
+    } finally {
+      document.getElementById('mobile-loading').style.display = 'none';
+      document.getElementById('mobile-camera').value = '';
+    }
+  }
+</script>
+</body>
+</html>

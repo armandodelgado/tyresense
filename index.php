@@ -3,7 +3,7 @@ session_start();
 
 // Default screen
 $screen = isset($_GET['screen']) ? $_GET['screen'] : 'home';
-$allowed = ['home', 'scan', 'result', 'history'];
+$allowed = ['home', 'scan', 'result', 'history', 'process_scan'];
 if (!in_array($screen, $allowed)) $screen = 'home';
 
 // Mock data
@@ -47,6 +47,29 @@ $result = [
     'confidence'    => 94,
 ];
 
+// Truck Health Agent — GO / NO-GO
+$python_cmd = "python";
+$health_script = escapeshellarg(__DIR__ . "/Python agents/truck_health_agent.py");
+$health_output = shell_exec("$python_cmd $health_script \"{$unit['id']}\" 500 normal 2>&1");
+$truck_health = null;
+if ($health_output) {
+    $decoded_health = json_decode($health_output, true);
+    if ($decoded_health && isset($decoded_health['verdict'])) {
+        $truck_health = $decoded_health;
+    }
+}
+// Fallback si Python no está disponible
+if (!$truck_health) {
+    $truck_health = [
+        'verdict' => 'NO-GO',
+        'reasons' => ['Presión crítica en T2Ii: 75 PSI (mín: 80)', 'Vida útil crítica en T2Ii: 28% (mín: 30%)'],
+        'warnings' => ['Presión baja en T1Di: 92 PSI', 'Llanta T1Ii en estado de advertencia', 'Llanta T1Di en estado de advertencia'],
+        'flagged_tires' => ['T2Ii'],
+        'summary' => ['total_tires' => 10, 'ok' => 7, 'warning' => 2, 'critical' => 1, 'avg_life_pct' => 63.4],
+        'trip' => ['distance' => 500, 'load' => 'normal', 'route' => 'Monterrey - Saltillo'],
+    ];
+}
+
 include 'includes/header.php';
 
 switch ($screen) {
@@ -54,6 +77,33 @@ switch ($screen) {
     case 'scan':    include 'screens/scan.php';    break;
     case 'result':  include 'screens/result.php';  break;
     case 'history': include 'screens/history.php'; break;
+    case 'process_scan':
+        if (isset($_FILES['tire_image']) && $_FILES['tire_image']['error'] == UPLOAD_ERR_OK) {
+            $tmp_name = $_FILES['tire_image']['tmp_name'];
+            $name = basename($_FILES['tire_image']['name']);
+            $upload_file = "uploads/" . time() . "_" . $name;
+            move_uploaded_file($tmp_name, $upload_file);
+            
+            // Ejecutar el script de Python
+            $python_cmd = "python"; // Asumiendo que python está en el PATH
+            $script_path = escapeshellarg(__DIR__ . "/Python agents/vision_model.py");
+            $image_path = escapeshellarg(__DIR__ . "/" . $upload_file);
+            
+            $output = shell_exec("$python_cmd $script_path $image_path 2>&1");
+            
+            if ($output) {
+                $decoded = json_decode($output, true);
+                if ($decoded) {
+                    if (isset($decoded['fallback'])) {
+                        $result = $decoded['fallback'];
+                    } else if (!isset($decoded['error'])) {
+                        $result = $decoded;
+                    }
+                }
+            }
+        }
+        include 'screens/result.php';
+        break;
 }
 
 include 'includes/footer.php';
